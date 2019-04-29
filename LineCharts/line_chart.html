@@ -1,1 +1,155 @@
+<html>
+<head>
+  <script src="http://d3js.org/d3.v4.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script>
+  <link rel="stylesheet" href="line_chart.css">
+  <style>
+  </style>
+</head>
+<body>
+  <div id="info">
+      <div id="point-info">
+          <b>Select Word</b>
+          <br>
+          <br>
+          <select></select>
+      </div>
+  </div>
+  <div id="plot">
+    <div id="spinner" style="width:40">
+    </div>
+  </div>
+  <script>
 
+    var margin = 30;
+    var w = 700, h = 500 - 2 * margin;
+
+    var svg = d3.select('#plot').append("svg")
+              .attr("width", w)
+              .attr("height", h + 2*margin)
+              .append("svg:g")
+              .attr("transform", "translate(" + 2*margin + ", " + margin + ")");
+
+              // Set up the Dropdown list
+              const drodownOptions=[{name:'Love',value:'love'},
+              {name:'Baby',value:'baby'},
+              {name:'Fuck',value:'fuck'}]
+
+              var dropdown = d3.select("select").attr("id", "ddSel").attr("transform", "translate(" + margin + ", " + margin + ")");
+              var options = dropdown.selectAll("option").data(drodownOptions)
+              options.enter()
+                      .append("option")
+                      .text(function(d){return d.name})
+                      .attr("value", function (d, i) {return d.value;});
+              var opts = {
+                lines: 9, // The number of lines to draw
+                length: 7, // The length of each line
+                width: 4, // The line thickness
+                radius: 10, // The radius of the inner circle
+                color: 'blue', // #rgb or #rrggbb or array of colors
+                speed: 1.9, // Rounds per second
+                trail: 40, // Afterglow percentage
+                className: 'spinner', // The CSS class to assign to the spinner
+              };
+
+              dropdown.on("change",function(){
+                //get rid of everything
+                d3.select("#line-id").remove();
+                d3.selectAll(".x.axis").remove();
+                d3.selectAll(".y.axis").remove();
+                d3.selectAll(".label").remove();
+                var spinner = new Spinner(opts).spin(document.getElementById("spinner"));
+                setTimeout(function(){
+                    console.log('after');
+                    var sect = document.getElementById("ddSel");
+              			var chartName = sect.options[sect.selectedIndex].value;
+                    spinner.stop();
+                    word_line_charts(chartName);
+                  }, 5000);
+              })
+
+    function word_line_charts(word){
+      d3.json("/data/"+word+"_count.json", load_data);
+
+      function load_data(data){
+        data = data[word];
+        line_chart(data, word);
+      };
+    }
+
+    function line_chart(data, word){
+      WIDTH = 1000,
+      HEIGHT = 500,
+      MARGINS = {
+        top: 20,
+        right: 20,
+        bottom: 20,
+        left: 20
+      }
+
+      //X and Y axis
+      xRange = d3.scaleLinear().range([0, w]).domain([d3.min(data, function(d) {
+       return Object.keys(d)[0];
+     }), d3.max(data, function(d) {
+       return Object.keys(d)[0];
+     })]),
+     yRange = d3.scaleLinear().range([h, 0]).domain([d3.min(data, function(d) {
+       return d[Object.keys(d)[0]];
+     }), d3.max(data, function(d) {
+       return d[Object.keys(d)[0]];
+     })]),
+     xAxis = d3.axisBottom()
+       .scale(xRange)
+       .tickSize(4),
+     yAxis = d3.axisLeft()
+       .scale(yRange)
+       .tickSize(4);
+
+       svg.append('svg:g')
+      .attr('class', 'x axis')
+      .attr("transform", "translate(0, " + h  + ")")
+      .call(xAxis);
+
+      svg.append('svg:g')
+      .attr('class', 'y axis')
+      .call(yAxis);
+
+      var lineFunc = d3.line()
+     .x(function(d) {
+       return xRange( Object.keys(d)[0]);
+     })
+     .y(function(d) {
+       return yRange(d[Object.keys(d)[0]]);
+     });
+
+     svg.append('svg:path')
+     .attr('d', lineFunc(data))
+     .attr('stroke', 'blue')
+     .attr('stroke-width', 2)
+     .attr('fill', 'none')
+     .attr("id", "line-id");
+
+     // text label for the x axis
+       svg.append("text")
+       .attr("transform",
+            "translate(" + (w/2) + " ," +
+                           (h+margin) + ")")
+      .attr("class", "label")
+      .style("text-anchor", "middle")
+      .text("Years");
+
+      // text label for the y axis
+      svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y",0-2*margin)
+      .attr("x",0-h/2)
+      .attr("dy", "1em")
+      .attr("class", "label")
+      .style("text-anchor", "middle")
+      .text("Count of word \""+word+"\"");
+    }
+
+    word_line_charts("love")
+  </script>
+</body>
+</html>
