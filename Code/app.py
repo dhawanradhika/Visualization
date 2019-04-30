@@ -48,15 +48,15 @@ def line():
     return flask.render_template("line_chart.html")
 
 @app.route("/data")
-@app.route("/data/<string:chartName>")
-def data(chartName=""):
-    print("---------------------------"+chartName+"---------------------")
-    if os.path.exists("data/"+chartName+"_count.json"):
-        with open("data/"+chartName+"_count.json", 'r') as infile:
+@app.route("/data/<string:word>")
+def data(word=""):
+    print("---------------------------"+word+"---------------------")
+    if os.path.exists("data/"+word+"_count.json"):
+        with open("data/"+word+"_count.json", 'r') as infile:
             data = json.load(infile)
     else:
         line_data = getWordTrend(word)
-        with open(chartName+'_count.json', 'w') as outfile:
+        with open(word+'_count.json', 'w') as outfile:
             json.dump(data, outfile)
     return json.dumps(data)
 
