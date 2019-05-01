@@ -34,18 +34,22 @@ app = flask.Flask(__name__)
 @app.route("/")
 def index():
     """
-    When you request the root path, you'll get the index.html template.
+    When you request the root path, you'll get the hierarchy.html template.
 
     """
-    return flask.render_template("index.html")
+    return flask.render_template("hierarchy.html")
 
 @app.route("/word_cloud")
-def scatter():
+def word_cloud():
     return flask.render_template("word_cloud.html")
 
 @app.route("/line")
 def line():
     return flask.render_template("line_chart.html")
+
+@app.route("/similarity")
+def similarity():
+    return flask.render_template("similarity.html")
 
 @app.route("/data")
 @app.route("/data/<string:word>")
@@ -56,8 +60,27 @@ def data(word=""):
             data = json.load(infile)
     else:
         line_data = getWordTrend(word)
-        with open(word+'_count.json', 'w') as outfile:
+        with open("data/"+word+'_count.json', 'w') as outfile:
             json.dump(data, outfile)
+    return json.dumps(data)
+
+@app.route("/hierarchy")
+def hierarchy():
+    with open("data/hierarchy_data.json", 'r') as infile:
+        data = json.load(infile)
+    return json.dumps(data)
+
+@app.route("/wordcloud")
+@app.route("/wordcloud/<string:type>")
+def data_wordcloud(type=""):
+    with open("data/"+type+"_keys_count.json", 'r') as infile:
+        data = json.load(infile)
+    return json.dumps(data)
+
+@app.route("/scatterplot")
+def data_scatter():
+    with open("data/similarity.json", 'r') as infile:
+        data = json.load(infile)
     return json.dumps(data)
 
 if __name__ == "__main__":
