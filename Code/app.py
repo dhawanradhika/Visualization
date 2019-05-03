@@ -3,24 +3,34 @@ This file is part of the flask+d3 Hello World project.
 """
 import numpy as np
 import sys
-import itertools
-import time
-from pathlib import Path
 import pandas as pd
 import json
 import flask
+from collections import defaultdict
 
 
-#-------------------------------------------------------------------------
-# Setting paths for data files
-#base_path="./data/"
-#song_data=base_path+"songs.csv"
-#-------------------------------------------------------------------------
-# Loading Data Files
-#df = pd.read_csv(song_data)
-#columns = df.columns
-#df.columns = ['attr-'+str(i) for i in range(1,len(df.columns)+1)]
-#-------------------------------------------------------------------------
+# def word_count(mode, mode_val, word):
+
+#     if mode == 'decade':
+#         lookup = pickle.load(open(decade_file, 'rb'))
+#         mode_val = int(mode_val)
+#     elif mode == 'genre':
+#         lookup = pickle.load(open(genre_file, 'rb'))
+#     elif mode == 'artist':
+#         lookup = pickle.load(open(artist_file, 'rb'))
+#     else:
+#         lookup = pickle.load(open(year_file, 'rb'))
+#         mode_val = int(mode_val)
+
+#     look_in = pickle.load(open('organized_corpus/labels.pk', 'rb'))[mode]
+#     lyrics = pickle.load(open('organized_corpus/lyrics.pk', 'rb'))
+
+#     count = defaultdict(int)
+#     for lyric, val in zip(lyrics, look_in):
+#         count[val] += lyrics.split().count(word)
+
+#     return count
+
 #Utility Functions
 
 #Get the trend of a word for line chart
@@ -37,7 +47,9 @@ def index():
     When you request the root path, you'll get the index.html template.
 
     """
-    return flask.render_template("index.html")
+    with open (decade_wise_json) as dwj:
+        return flask.render_template('index.html', zooming)
+    return flask.render_template("index.html", )
 
 @app.route("/word_cloud")
 def scatter():
