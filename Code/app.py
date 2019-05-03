@@ -7,37 +7,39 @@ import pandas as pd
 import json
 import flask
 from collections import defaultdict
-
-
-# def word_count(mode, mode_val, word):
-
-#     if mode == 'decade':
-#         lookup = pickle.load(open(decade_file, 'rb'))
-#         mode_val = int(mode_val)
-#     elif mode == 'genre':
-#         lookup = pickle.load(open(genre_file, 'rb'))
-#     elif mode == 'artist':
-#         lookup = pickle.load(open(artist_file, 'rb'))
-#     else:
-#         lookup = pickle.load(open(year_file, 'rb'))
-#         mode_val = int(mode_val)
-
-#     look_in = pickle.load(open('organized_corpus/labels.pk', 'rb'))[mode]
-#     lyrics = pickle.load(open('organized_corpus/lyrics.pk', 'rb'))
-
-#     count = defaultdict(int)
-#     for lyric, val in zip(lyrics, look_in):
-#         count[val] += lyrics.split().count(word)
-
-#     return count
+import os
+from file_paths import *
+import pickle
 
 #Utility Functions
 
 #Get the trend of a word for line chart
-def getWordTrend(word):
-    print("----------------------------------------"+word+"------------------------------------------");
+def get_word_trend(word, mode='year'):
+    
+    print("----------------------------------------"+word+"------------------------------------------")
+    lyrics = pickle.load(open(lyrics_file, 'rb'))
+    labels = pickle.load(open(labels_file, 'rb'))[mode]
 
-# ------------------------------------------------------------------
+    trend_dict = defaultdict(int)
+    val_counts = defaultdict(int)
+
+    for lyric, label in zip(lyrics, labels):
+        words = lyric.split()
+        trend_dict[label] += words.count(word)
+        val_counts[label] += 1
+    print('Counts collectedss')
+
+    result = []
+    for label, count in sorted(trend_dict.items(), key=lambda x: int(x[0])):
+        result.append({ label : count * 1000 / val_counts[label] })
+    result = { word : result }
+    print('Sending counts')
+    return json.dumps(result, indent=4, sort_keys=True)
+    
+
+
+
+
 app = flask.Flask(__name__)
 
 
@@ -47,13 +49,7 @@ def index():
     When you request the root path, you'll get the hierarchy.html template.
 
     """
-<<<<<<< HEAD
-    with open (decade_wise_json) as dwj:
-        return flask.render_template('index.html', zooming)
-    return flask.render_template("index.html", )
-=======
     return flask.render_template("hierarchy.html")
->>>>>>> 5a64a6f8febc98c96604f2fd969edf99309aa5a0
 
 @app.route("/word_cloud")
 def word_cloud():
@@ -67,18 +63,24 @@ def line():
 def similarity():
     return flask.render_template("similarity.html")
 
+
 @app.route("/data")
 @app.route("/data/<string:word>")
 def data(word=""):
-    print("---------------------------"+word+"---------------------")
-    if os.path.exists("data/"+word+"_count.json"):
-        with open("data/"+word+"_count.json", 'r') as infile:
-            data = json.load(infile)
+
+    trend_file = os.path.join(word_trend_dir, word + '_count.json')
+
+    if os.path.exists(trend_file):
+        with open(trend_file) as infile:
+            data = infile.read()
     else:
-        line_data = getWordTrend(word)
-        with open("data/"+word+'_count.json', 'w') as outfile:
-            json.dump(data, outfile)
-    return json.dumps(data)
+        data = get_word_trend(word)
+        with open(trend_file, 'w') as outfile:
+            outfile.write(data)
+
+    return data
+
+
 
 @app.route("/hierarchy")
 def hierarchy():
