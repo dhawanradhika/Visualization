@@ -1,20 +1,38 @@
 <html>
 <head>
+  <link rel="stylesheet" href="/styles/line_chart.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <script src="http://d3js.org/d3.v4.js"></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
   <style>
   </style>
 </head>
 <body>
-  <div id="info">
-      <div id="point-info">
-          <b>Select Word</b>
-          <br>
-          <br>
-          <select></select>
-      </div>
+  <div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+  <span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+  <div class="navbar-nav">
+    <a class="nav-item nav-link active" href="./">Home <span class="sr-only">(current)</span></a>
+    <a class="nav-item nav-link" href="./line">Yearwise Word Trends</a>
+    <a class="nav-item nav-link" href="./word_cloud">Popular Words</a>
+    <a class="nav-item nav-link" href="./similarity">Similarity in Artists</a>
   </div>
-  <div id="plot">
+</div>
+</nav>
+    </div>
+  <div class="input-group mb-3" style="width:300px; margin:auto">
+  <input name="word" type="text" id="searchWord" class="form-control" placeholder="love"
+  aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+  <div class="input-group-append">
+    <button class="btn btn-outline-secondary" type="button" onClick="searchWord()">Search</button>
+  </div>
+</div>
+  <div id="plot" style="width:70%; margin:auto">
     <div id="spinner" style="width:40">
     </div>
   </div>
@@ -29,17 +47,6 @@
               .append("svg:g")
               .attr("transform", "translate(" + 2*margin + ", " + margin + ")");
 
-              // Set up the Dropdown list
-              const drodownOptions=[{name:'Love',value:'love'},
-              {name:'Baby',value:'baby'},
-              {name:'Fuck',value:'fuck'}]
-
-              var dropdown = d3.select("select").attr("id", "ddSel").attr("transform", "translate(" + margin + ", " + margin + ")");
-              var options = dropdown.selectAll("option").data(drodownOptions)
-              options.enter()
-                      .append("option")
-                      .text(function(d){return d.name})
-                      .attr("value", function (d, i) {return d.value;});
               var opts = {
                 lines: 9, // The number of lines to draw
                 length: 7, // The length of each line
@@ -51,22 +58,22 @@
                 className: 'spinner', // The CSS class to assign to the spinner
               };
 
-              dropdown.on("change",function(){
-                //get rid of everything
-                d3.select("#line-id").remove();
-                d3.selectAll(".x.axis").remove();
-                d3.selectAll(".y.axis").remove();
-                d3.selectAll(".label").remove();
-                d3.selectAll(".area").remove();
-                var spinner = new Spinner(opts).spin(document.getElementById("spinner"));
-                setTimeout(function(){
-                    console.log('after');
-                    var sect = document.getElementById("ddSel");
-              			var chartName = sect.options[sect.selectedIndex].value;
-                    spinner.stop();
-                    word_line_charts(chartName);
-                  }, 5000);
-              })
+    function searchWord()
+    {
+      word = document.getElementById("searchWord").value;
+      console.log("Search Word:", word);
+      d3.select("#line-id").remove();
+      d3.selectAll(".x.axis").remove();
+      d3.selectAll(".y.axis").remove();
+      d3.selectAll(".label").remove();
+      d3.selectAll(".area").remove();
+      var spinner = new Spinner(opts).spin(document.getElementById("spinner"));
+      setTimeout(function(){
+          console.log('after');
+          spinner.stop();
+          word_line_charts(word);
+        }, 5000);
+    }
 
     function word_line_charts(word){
       d3.json("data/"+word, load_data);

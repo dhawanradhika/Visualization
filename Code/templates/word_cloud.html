@@ -1,12 +1,60 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<body>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
+</head>
+<body>
+  <div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+  <span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+  <div class="navbar-nav">
+    <a class="nav-item nav-link active" href="./">Home <span class="sr-only">(current)</span></a>
+    <a class="nav-item nav-link" href="./line">Yearwise Word Trends</a>
+    <a class="nav-item nav-link" href="./word_cloud">Popular Words</a>
+    <a class="nav-item nav-link" href="./similarity">Similarity in Artists</a>
+  </div>
+</div>
+</nav>
+    </div>
+    <div id="info" style="margin:auto; padding:20px">
+        <div id="point-info">
+            <b>Category for Popular Words</b>
+            <br>
+            <br>
+            <select></select>
+            <button class="btn btn-secondary btn-sm" onClick="document.location.reload(true)">Reload</button>
+        </div>
+    </div>
+  <div id = "word_cloud" style="width:35%; margin:auto; ">
+    <h1 id="category" style="color:#004e6b; margin:auto; text-align:center"></h1>
+    <br/>
+  </div>
   <script>
 
 //Simple animated example of d3-cloud - https://github.com/jasondavies/d3-cloud
 //Based on https://github.com/jasondavies/d3-cloud/blob/master/examples/simple.html
+
+const dropdownOptions=[{name:'Select a category',value:'*'},
+{name:'Genre wise',value:'genre'},
+{name:'Decade wise',value:'decade'}]
+    var dropdown = d3.select("select").attr("id", "ddSel");
+    var options = dropdown.selectAll("option").data(dropdownOptions)
+    options.enter()
+            .append("option")
+            .text(function(d){return d.name})
+            .attr("value", function (d) {return d.value});
+
+    dropdown.on("change",function(){
+      var sect = document.getElementById("ddSel");
+      var value = sect.options[sect.selectedIndex].value;
+      console.log("Chart:"+value);
+      changeIt(value)
+    })
 
 // Encapsulate the word cloud functionality
 function wordCloud(selector) {
@@ -19,7 +67,6 @@ function wordCloud(selector) {
         .attr("height", 500)
         .append("g")
         .attr("transform", "translate(250,250)");
-
 
     //Draw the word cloud
     function draw(words) {
@@ -77,44 +124,60 @@ function wordCloud(selector) {
 
 }
 
-//Some sample data - http://en.wikiquote.org/wiki/Opening_lines
-var words = [
-    "AAAAAAAA AA AAAAAAA AAA BBBBBB BB BBBB CCCCCCCC CCCC CCCC CCCC AA AA AAAAAAAAA",
-    "When Mr. Bilbo Baggins of Bag End announced that he would shortly be celebrating his eleventy-first birthday with a party of special magnificence, there was much talk and excitement in Hobbiton.",
-    "It was inevitable: the scent of bitter almonds always reminded him of the fate of unrequited love."
-]
-
 //Prepare one of the sample sentences by removing punctuation,
 // creating an array of words and computing a random size attribute.
-function getWords(i) {
-  var common = "poop,i,me,my,myself,we,us,our,ours,ourselves,you,your,yours,yourself,yourselves,he,him,his,himself,she,her,hers,herself,it,its,itself,they,them,their,theirs,themselves,what,which,who,whom,whose,this,that,these,those,am,is,are,was,were,be,been,being,have,has,had,having,do,does,did,doing,will,would,should,can,could,ought,i'm,you're,he's,she's,it's,we're,they're,i've,you've,we've,they've,i'd,you'd,he'd,she'd,we'd,they'd,i'll,you'll,he'll,she'll,we'll,they'll,isn't,aren't,wasn't,weren't,hasn't,haven't,hadn't,doesn't,don't,didn't,won't,wouldn't,shan't,shouldn't,can't,cannot,couldn't,mustn't,let's,that's,who's,what's,here's,there's,when's,where's,why's,how's,a,an,the,and,but,if,or,because,as,until,while,of,at,by,for,with,about,against,between,into,through,during,before,after,above,below,to,from,up,upon,down,in,out,on,off,over,under,again,further,then,once,here,there,when,where,why,how,all,any,both,each,few,more,most,other,some,such,no,nor,not,only,own,same,so,than,too,very,say,says,said,shall";
-
-  if(common.indexOf(words[i])==-1)
-  {
-    return words[i]
-            .replace(/[!\.,:;\?]/g, '')
-            .split(' ')
-            .map(function(d) {
-                return {text: d, size: 10 + Math.random() * 60};
-            })
-  }
+function getWords(data) {
+  console.log(Object.keys(data));
+  var keys = Object.keys(data);
+  return keys
+          .map(function(d) {
+              return {text: d, size: data[d]};
+          })
 }
 
 //This method tells the word cloud to redraw with a new set of words.
 //In reality the new words would probably come from a server request,
 // user input or some other source.
-function showNewWords(vis, i) {
+function showNewWords(vis, category, data) {
+  var values = Object.keys(data);
+  repeatWords();
+  function repeatWords(i)
+  {
     i = i || 0;
+    document.getElementById('category').innerHTML = category+": "+values[i%values.length];
+    vis.update(getWords(data[values[i%values.length]]))
+    setTimeout(function() { repeatWords(i + 1)}, 4000)
+  }
 
-    vis.update(getWords(i % words.length))
-    setTimeout(function() { showNewWords(vis, i + 1)}, 4000)
 }
 
+function changeIt(category)
+{
+  if(category != "*")
+  {
+    d3.json("wordcloud/"+category, load_data);
+
+    function load_data(data)
+    {
+      console.log(data);
+      //Create a new instance of the word cloud visualisation.
+      var myWordCloud = wordCloud(document.getElementById('word_cloud'));
+
+      //Start cycling through the demo data
+      showNewWords(myWordCloud, category, data);
+    }
+  }
+  else {
+    document.location.reload(true);
+  }
+
+}
+//Initial display
 //Create a new instance of the word cloud visualisation.
-var myWordCloud = wordCloud('body');
+//var myWordCloud = wordCloud(document.getElementById('word_cloud'));
 
 //Start cycling through the demo data
-showNewWords(myWordCloud);
+//showNewWords(myWordCloud, "genre");
 
 
 </script>

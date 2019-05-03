@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
+  <style>
+
+path.line {
+fill: none;
+stroke: #666;
+stroke-width: 1.5px;
+}
+
+.domain {
+stroke-width: 1px;
+}
+
+circle {
+cursor: pointer;
+}
+
+.axis {
+shape-rendering: crispEdges;
+}
+
+.axis line, .axis path {
+stroke-width: 1px;
+stroke: #000;
+fill: none;
+}
+
+.tooltip {
+display: none;
+}
+
+.tooltip.active {
+display: block;
+}
+
+.tooltip rect {
+fill: #ff0000;
+}
+
+</style>
+</head>
+<body>
+    <div>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link active" href="./">Home <span class="sr-only">(current)</span></a>
+      <a class="nav-item nav-link" href="./line">Yearwise Word Trends</a>
+      <a class="nav-item nav-link" href="./word_cloud">Popular Words</a>
+      <a class="nav-item nav-link" href="./similarity">Similarity in Artists</a>
+    </div>
+  </div>
+  </nav>
+  </div>
+
+    <div id="plot">
+    </div>
+
+    <script>
+
+    // Set up the plot window.
+    var xlabel = "PCA-1";
+    var ylabel = "PCA-2";
+    var margin = 30;
+    var w = 700 - 2 * margin, h = 500 - 2 * margin;
+    var svg = d3.select("#plot").append("svg")
+                    .attr("width", w + 2 * margin)
+                    .attr("height", h + 2 * margin)
+                .append("svg:g")
+                    .attr("transform", "translate(" + margin + ", " + margin + ")");
+
+        // Load the data.
+        var callback = function (data) {
+          // The colorbar.
+          console.log(data)
+          var color = d3.scaleQuantize()
+                        .range(["#156b87", "#876315", "#543510", "#872815"])
+                        .domain([0, 1]);
+
+          // Axes scaling functions.
+          var xscale = d3.scaleLinear().range([0, w]);
+          var yscale = d3.scaleLinear().range([h, 0]);
+
+          // The axes objects themselves.
+          var xaxis = d3.axisBottom().scale(xscale).ticks(8).tickSize(4);
+          var yaxis = d3.axisLeft().scale(yscale).ticks(8).tickSize(4);
+
+          svg.append("svg:g").attr("class", "x axis")
+                             .attr("transform", "translate(10, " + h + ")");
+          svg.append("svg:g").attr("class", "y axis")
+                             .attr("transform", "translate(10,0)");
+
+          // text label for the x axis
+          svg.append("text")
+          .attr("class","label")
+          .attr("transform",
+              "translate(" + (w/2) + " ," +
+              (h+0.85*margin) + ")")
+          .style("text-anchor", "middle")
+          .text(xlabel);
+
+          // text label for the y axis
+          svg.append("text")
+          .attr("class","label")
+          .attr("transform", "rotate(-90)")
+          .attr("y",0-1.15*margin)
+          .attr("x",0-h/2)
+          .attr("dy", "1em")
+          .style("text-anchor", "middle")
+          .text(ylabel);
+
+          // Show the information about a particular point.
+          var show_info = function (d) {
+              d3.select("#point-info").text("This is point " + d._id + ". "
+                  + "It has the coordinates (" + d.x + ", " + d.y + ").");
+          };
+
+          //-----------------------------------------------------------------
+            // Rescale the axes.
+            xscale.domain([d3.min(data, function (d) { return d.x; }) - 0.05,
+                           d3.max(data, function (d) { return d.x; }) + 0.05]);
+            yscale.domain([d3.min(data, function (d) { return d.y; }) - 0.05,
+                           d3.max(data, function (d) { return d.y; }) + 0.05]);
+
+            // Display the axes.
+            svg.select(".x.axis").call(xaxis);
+            svg.select(".y.axis").call(yaxis);
+
+            // Insert the data points.
+            svg.selectAll("circle").data(data).enter()
+                .append("circle")
+                    .attr("id", function (d) { return d._id; })
+                    .attr("cx", function (d) { return xscale(d.x); })
+                    .attr("cy", function (d) { return yscale(d.y); })
+                    .attr("r", function (d) { return 3; })
+                    .style("fill", function (d) { return "blue"; })
+                    .on("mousedown", show_info);
+};
+
+    //-----------------------------------------------------------------
+        // First CALL
+        d3.json("/scatterplot", callback);
+    //-----------------------------------------------------------------
+
+
+    </script>
+</body>
+</html>
