@@ -67,8 +67,8 @@ def similarity():
 @app.route("/data")
 @app.route("/data/<string:word>")
 def data(word=""):
-
-    trend_file = os.path.join(word_trend_dir, word + '_count.json')
+    mode = 'year'
+    trend_file = os.path.join(word_trend_dir, word + '_' + mode + '_count.json')
 
     if os.path.exists(trend_file):
         with open(trend_file) as infile:
