@@ -3,27 +3,30 @@ from collections import defaultdict
 from nltk.corpus import wordnet
 from gensim.models.word2vec import Word2Vec
 import gensim.downloader as api
-from file_paths import w2v_model_file, labels_file, lyrics_file
+from file_paths import *
 from constants import decade_key, decade_order
 import json
 import os
 
 
+if os.path.exists(w2v_model_file):
+    print ('Found existing word2vec model')
+    w2v_model = pickle.load(open(w2v_model_file, 'rb'))
+else:
+    print ('No existing word2vec model')
+    corpus = api.load('text8')
+    print ('training')
+    w2v_model = Word2Vec(corpus)
+    pickle.dump(w2v_model, open(w2v_model_file, 'wb'))
+    print ('model saved at', w2v_model_file)
+
+
 def get_similar_words(word, count=3):
 
-    if os.path.exists(w2v_model_file):
-        print ('Found existing word2vec model')
-        w2v_model = pickle.load(open(w2v_model_file, 'rb'))
-    else:
-        print ('No existing word2vec model')
-        corpus = api.load('text8')
-        print ('training')
-        w2v_model = Word2Vec(corpus)
-        pickle.dump(w2v_model, open(w2v_model_file, 'wb'))
-        print ('model saved at', w2v_model_file)
-
-    similar_words = [pair[0] for pair in w2v_model.wv.most_similar(word)[:count]]
-    return similar_words
+    if w2v_model.wv.vocab:
+        similar_words = [pair[0] for pair in w2v_model.wv.most_similar(word)[:count]]
+        return similar_words
+    return []
 
 
 
@@ -81,23 +84,36 @@ def pack_trend_result(trend, counts, mode):
 
 
 def get_word_trend(word, mode='year'):
+
+    trend_file = os.path.join(word_trend_dir, word + '_' + mode + '_count.json')
+    if os.path.exists(trend_file):
+        with open(trend_file) as tf:
+            trend = json.loads(tf.read())[word]
+    else:
     
     # print("----------------------------------------"+word+"------------------------------------------")
-    lyrics = pickle.load(open(lyrics_file, 'rb'))
-    labels = pickle.load(open(labels_file, 'rb'))[mode]
+        lyrics = pickle.load(open(lyrics_file, 'rb'))
+        labels = pickle.load(open(labels_file, 'rb'))[mode]
 
-    trend_dict = defaultdict(int)
-    val_counts = defaultdict(int)
+        trend_dict = defaultdict(int)
+        val_counts = defaultdict(int)
 
-    for lyric, label in zip(lyrics, labels):
-        words = lyric.split()
-        trend_dict[label] += words.count(word)
-        val_counts[label] += 1
-    print('Counts collected')
+        for lyric, label in zip(lyrics, labels):
+            words = lyric.split()
+            trend_dict[label] += words.count(word)
+            val_counts[label] += 1
+        print('Counts collected')
 
-    result = { word : pack_trend_result(trend_dict, val_counts, mode) }
-    print('Sending counts')
-    return json.dumps(result, indent=4, sort_keys=True)
+        trend = pack_trend_result(trend_dict, val_counts, mode)
+        print ('Saving file at', trend_file)
+        with open(trend_file, 'w') as tf:
+            tf.write(json.dumps({ word : trend }, indent=4))
+    
+    return trend
+
+    # result = { word : pack_trend_result(trend_dict, val_counts, mode) }
+    # print('Sending counts')
+    # return json.dumps(result, indent=4, sort_keys=True)
 
 
 
@@ -125,3 +141,6 @@ def context_trend_search(word, context, mode='year'):
     result = { word : pack_trend_result(trend_dict, val_counts, mode) }
     print ('Sending counts')
     return json.dumps(result, indent=4)
+
+
+

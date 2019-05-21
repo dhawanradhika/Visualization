@@ -1,94 +1,4 @@
-<!DOCTYPE html>
-<meta charset="utf-8">
-<head>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-  <script src="http://d3js.org/d3.v4.min.js"></script>
-  <script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
-  <style>
-
-path.line {
-fill: none;
-stroke: #666;
-stroke-width: 1.5px;
-}
-
-.domain {
-stroke-width: 1px;
-}
-
-circle {
-cursor: pointer;
-}
-
-.axis {
-shape-rendering: crispEdges;
-}
-
-.axis line, .axis path {
-stroke-width: 1px;
-stroke: #000;
-fill: none;
-}
-
-.tooltip {
-display: none;
-}
-
-.tooltip.active {
-display: block;
-}
-
-.tooltip rect {
-fill: #ff0000;
-}
-
-.genre-name {
-    margin: 0 !important;
-}
-.key-dot {
-    display: inline-block;
-    height: 10px;
-    margin-right: .5em;
-    width: 10px;
-}
-
-.hip-hop { background: #1F77B4;}
-.metal { background: #FF7F0E;}
-
-#legend{
-    overflow:hidden;
-    margin-left: 55em;
-    margin-top:1em;
-}
-.legend {
-    float:left;
-    margin-right: 1em;
-}
-
-</style>
-</head>
-<body>
-    <div>
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-    <div class="navbar-nav">
-      <a class="nav-item nav-link active" href="./">Home <span class="sr-only">(current)</span></a>
-      <a class="nav-item nav-link" href="./line">Yearwise Word Trends</a>
-      <a class="nav-item nav-link" href="./word_cloud">Popular Words</a>
-      <a class="nav-item nav-link" href="./similarity">Similarity in Genres</a>
-      <a class="nav-item nav-link" href="./genres">Genres</a>
-    </div>
-  </div>
-  </nav>
-  </div>
-  <div id="legend">
-	   <div class="legend"> <p class="genre-name"><span class="key-dot hip-hop"></span>Hip-Hop</p> </div>
-	   <div class="legend"> <p class="genre-name"><span class="key-dot metal"></span>Metal</p> </div>
-	</div>
-    <div id="plot" style="width:60%; margin:auto">
+<div id="plot">
     </div>
 
     <script>
@@ -98,6 +8,7 @@ fill: #ff0000;
     var ylabel = "MDS Component 2";
     var margin = 30;
     var w = 700, h = 500 - 2 * margin;
+
     var svg = d3.select("#plot").append("svg")
                     .attr("width", w + 2 * margin)
                     .attr("height", h + 2 * margin)
@@ -107,22 +18,23 @@ fill: #ff0000;
         // Load the data.
         var callback = function (data) {
           // The colorbar.
-          var color = d3.scaleQuantize()
+          var color = d3.scale.quantize()
                         .range(["#156b87", "#876315", "#543510", "#872815"])
                         .domain([0, 1]);
 
           // Axes scaling functions.
-          var xscale = d3.scaleLinear().range([0, w]);
-          var yscale = d3.scaleLinear().range([h, 0]);
+          var xscale = d3.scale.linear().range([0, w]);
+          var yscale = d3.scale.linear().range([h, 0]);
 
           // The axes objects themselves.
-          var xaxis = d3.axisBottom().scale(xscale).ticks(8).tickSize(4);
-          var yaxis = d3.axisLeft().scale(yscale).ticks(8).tickSize(4);
+          var xaxis = d3.svg.axis().scale(xscale).ticks(8).tickSize(4).orient("bottom");
+          var yaxis = d3.svg.axis().scale(yscale).ticks(8).tickSize(4).orient("left");
 
           svg.append("svg:g").attr("class", "x axis")
                              .attr("transform", "translate(0," + h + ")");
           svg.append("svg:g").attr("class", "y axis")
                              .attr("transform", "translate(0,0)");
+
 
           // text label for the x axis
           svg.append("text")
@@ -142,6 +54,7 @@ fill: #ff0000;
           .attr("dy", "1em")
           .style("text-anchor", "middle")
           .text(ylabel);
+
 
           // Show the information about a particular point.
           var show_info = function (d) {
@@ -188,5 +101,3 @@ fill: #ff0000;
 
 
     </script>
-</body>
-</html>

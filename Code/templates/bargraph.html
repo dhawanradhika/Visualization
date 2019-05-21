@@ -1,0 +1,98 @@
+<h3 id="heading_decade" style="margin:auto; width:43%; color:steelblue">{{decade}}</h3>
+<div id="plotUp">
+    </div>
+<script>
+decade = document.getElementById("heading_decade").innerHTML;
+
+var bar_data = {{data | safe}}
+
+bar_data = d3.map(bar_data).entries();
+barGraph()
+  function barGraph()
+  {
+    var margin = {top: 20, right: 20, bottom: 20, left: 40},
+        width = 450 - margin.left - margin.right,
+        height = 350 - margin.top - margin.bottom;
+
+    var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+    var y = d3.scale.linear().range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(10);
+
+    var svg = d3.select("#plotUp").append("svg")
+        .attr("width", width + margin.left + margin.right )
+        .attr("height", height + margin.top + (margin.bottom + 50))
+      .append("g")
+      .attr("id","BAR")
+        .attr("transform",
+              "translate(" + (margin.left+15) + "," + (margin.top) + ")");
+    
+    
+    x.domain(bar_data.map(function(d) { return d.key; }));
+    y.domain([0, d3.max(bar_data, function(d) { return d.value; })]);
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+      .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", "-.55em")
+        .attr("transform", "rotate(-90)");
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Count");
+
+    svg.selectAll("bar")
+        .data(bar_data)
+      .enter().append("rect")
+        .attr("fill", "steelblue")
+        .attr("x", function(d) {return x(d.key); })
+        .attr("width", x.rangeBand())
+        .attr("y", function(d) { return y(d.value); })
+        .attr("height", function(d) {return height - y(d.value); })
+        .on('click', barClick);
+
+    function barClick(d)
+    {
+      barcolor = d3.select(this).attr("fill");
+      if(barcolor == "steelblue") {
+        d3.select(this)
+        .attr("fill","orange")
+      
+      
+      $(function(){
+        console.log("Andar");
+        $.post("load_data/"+d.key, function(result){
+            $('#wordCloud').load('wordcloud');
+            $('#plotDown').load('wordtrend')
+        });
+        
+        // TODO: line chart
+      });
+      }
+      else {
+        d3.select(this)
+        .attr("fill", "steelblue")
+        $(function(){
+          // TODO: Reset signal
+          $('#wordCloud').load('genre_wordcloud');
+        });
+      }
+    }
+  }

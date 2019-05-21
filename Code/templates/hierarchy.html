@@ -14,6 +14,7 @@ html
 body
 {
     padding:10px;
+    /*background-image: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);*/
 }
 
 form
@@ -24,7 +25,7 @@ form
 #code_hierarchy
 {
     position:relative;
-    width:600px;
+    width:550px;
     margin:0 auto;
 }
 
@@ -37,7 +38,30 @@ form
 </style>
 <head>
 <script src="http://d3js.org/d3.v3.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script>
+<script src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script lang="text/javascript">
+
+
+$(function(){
+  $('#header').load('navbar');
+});
+
+$(function(){
+  $('#wordCloud').load('wordcloud');
+});
+
+$(function(){
+  $('#plotDown').load('wordtrend');
+});
+
+$(function(){
+  $('#plotUp').load('bargraph');
+});
+
+
 
 function init_code_hierarchy_plot(element_id,data,count_function,color_function,title_function,legend_function)
 {
@@ -263,8 +287,15 @@ function init_code_hierarchy_plot(element_id,data,count_function,color_function,
                 ref = d;
             }
             },1000);
-    };
 
+        $(function(){
+          $('#wordCloud').load('genre_wordcloud', { "decade": d[2], "genre":"" });
+        });
+
+        $(function(){
+          $('#plotUp').load('genre_bargraph',{"decade": d[2].trim().substring(0,3)});
+        });
+    };
 }
 
 function init_plots()
@@ -307,22 +338,21 @@ window.onresize = init_plots;
 </script>
 </head>
 <body>
-    <div>
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-    <div class="navbar-nav">
-      <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
-      <a class="nav-item nav-link" href="./line">Yearwise Word Trends</a>
-      <a class="nav-item nav-link" href="./word_cloud">Popular Words</a>
-      <a class="nav-item nav-link" href="./similarity">Similarity in Artists</a>
+    <div id="header"></div>
+    <div style="width: 1650px;">
+  <section style="width: 1650px; margin: auto; padding: 10px;">
+    <div id="wordCloud" style="width: 35%; float:left; margin-top:80px"></div>
+    <div style="float:left; width:35%; margin-top:60px">
+      <div id="code_hierarchy_legend">&nbsp;</div>
+      <div id="code_hierarchy">&nbsp;</div>
     </div>
+  <div style="margin-left:67%; text-align: center">
+    <div id="plotUp"></div>
+    <span> <b>Top keyword trend</b> </span>
+    <div class="chart-wrapper" id="plotDown"></div>
   </div>
-</nav>
-      </div>
-    <div id="code_hierarchy_legend">&nbsp;</div>
-    <div id="code_hierarchy">&nbsp;</div>
+  </section>
+    <br style="clear: left;" />
+  </div>
 </body>
 </html>

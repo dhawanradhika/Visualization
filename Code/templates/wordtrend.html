@@ -1,0 +1,46 @@
+<script type="text/javascript" src="{{ url_for('static', filename='multiline.js') }}"></script>
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/multi_line.css') }}">
+<div id="plot">
+    <div id="spinner" style="width:40">
+    </div>
+  </div>
+  <script>
+
+    var wt_data = {{ data | safe }}
+    var margin = 30;
+    var w = 450 , h = 350 - 2 * margin;
+
+    words = Object.keys(wt_data);
+    var samples = Object.values(wt_data[words[0]]);
+    years = []
+    samples.forEach(sample => {
+      year = Object.keys(sample)[0];
+      years.push(year);
+    })
+    var min_year = Math.min(...years);
+  
+    multi_line_data = []
+
+    var idx = 0;
+    years.forEach(year => {
+      curr_item = {}
+      curr_item['year'] = year;
+      
+      words.forEach(word => {
+        curr_item[word] = wt_data[word][idx][year];
+      });
+      idx = +idx + 1
+      multi_line_data.push(curr_item);
+    });
+    var legend_dict = {}
+    words.forEach(word => {
+      legend_dict[word] = {column : word};
+    });
+    var axes = {xAxis : 'Years', yAxis : 'Appearance per 1000 songs'}
+    var chart = makeLineChart(multi_line_data, 'year', legend_dict, axes);
+    chart.bind('#plotDown');
+    chart.render();
+
+  </script>
+</div>
+

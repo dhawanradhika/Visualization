@@ -16,7 +16,8 @@
     <a class="nav-item nav-link active" href="./">Home <span class="sr-only">(current)</span></a>
     <a class="nav-item nav-link" href="./line">Yearwise Word Trends</a>
     <a class="nav-item nav-link" href="./word_cloud">Popular Words</a>
-    <a class="nav-item nav-link" href="./similarity">Similarity in Artists</a>
+    <a class="nav-item nav-link" href="./similarity">Similarity in Genres</a>
+    <a class="nav-item nav-link" href="./genres">Genres</a>
   </div>
 </div>
 </nav>
@@ -80,7 +81,8 @@ function wordCloud(selector) {
             .style("fill", function(d, i) { return fill(i); })
             .attr("text-anchor", "middle")
             .attr('font-size', 1)
-            .text(function(d) { return d.text; });
+            .text(function(d) { return d.text; })
+            .on('click', handleMouseClick);
 
         //Entering and existing words
         cloud
@@ -99,6 +101,10 @@ function wordCloud(selector) {
                 .style('fill-opacity', 1e-6)
                 .attr('font-size', 1)
                 .remove();
+
+        function handleMouseClick(d){
+          console.log(d);
+        }
     }
 
 
