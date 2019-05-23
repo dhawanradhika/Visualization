@@ -1,0 +1,95 @@
+<h3 id="heading_decade" style="margin:auto; width:43%; color:steelblue">{{decade}}</h3>
+<div id="plotUp">
+    </div>
+<script>
+decade = document.getElementById("heading_decade").innerHTML;
+barGraph(decade)
+  function barGraph(decade="")
+  {
+    var margin = {top: 20, right: 20, bottom: 20, left: 40},
+        width = 450 - margin.left - margin.right,
+        height = 350 - margin.top - margin.bottom;
+
+    var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+    var y = d3.scale.linear().range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .ticks(10);
+
+    var svg = d3.select("#plotUp").append("svg")
+        .attr("width", width + margin.left + margin.right )
+        .attr("height", height + margin.top + (margin.bottom + 50))
+      .append("g")
+      .attr("id","BAR")
+        .attr("transform",
+              "translate(" + (margin.left+15) + "," + (margin.top) + ")");
+
+    d3.json("genre/bargraph/"+decade, function(error, data) {
+        data.forEach(function(d) {
+            d.Genre = d.Genre;
+            d.Freq = d.Freq;
+        });
+
+      x.domain(data.map(function(d) { return d.Genre; }));
+      y.domain([0, d3.max(data, function(d) { return d.Freq; })]);
+
+      svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(10," + height + ")")
+          .call(xAxis)
+        .selectAll("text")
+          .style("text-anchor", "end")
+          .attr("dx", "-.8em")
+          .attr("dy", "-.55em")
+          .attr("transform", "rotate(-90)");
+
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+          .attr("transform", "translate(10,0)")
+        .append("text")
+          .attr("transform", "rotate(-90) ")
+          .attr("y", 6)
+          .attr("dy", ".71em")
+          .style("text-anchor", "end")
+          .text("Count");
+
+      svg.selectAll("bar")
+          .data(data)
+        .enter().append("rect")
+        .attr("transform", "translate(10,0)")
+          .attr("fill", "steelblue")
+          .attr("x", function(d) {return x(d.Genre); })
+          .attr("width", x.rangeBand())
+          .attr("y", function(d) { return y(d.Freq); })
+          .attr("height", function(d) {return height - y(d.Freq); })
+          .on('click', barClick);
+    });
+
+    function barClick(d)
+    {
+      barcolor = d3.select(this).attr("fill");
+      if(barcolor == "steelblue") {
+        d3.select(this)
+        .attr("fill","orange")
+
+        $(function(){
+          $('#wordCloud').load('genre_wordcloud', { "decade": decade, "genre": d.Genre });
+        });
+      }
+      else {
+        d3.select(this)
+        .attr("fill", "steelblue")
+        $(function(){
+          $('#wordCloud').load('genre_wordcloud');
+        });
+      }
+    }
+  }

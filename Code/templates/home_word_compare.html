@@ -1,40 +1,17 @@
-<html>
-<head>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-  <script src="http://d3js.org/d3.v4.js"></script>
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-  <script>
-    $(function(){
-      $('#header').load('navbar');
-    });
-    </script>
-</head>
-<body>
-  <div id="header">
-    </div>
-  <div class="input-group mb-3" style="width:300px; margin:auto">
-  <input name="word" type="text" id="searchWord" class="form-control" placeholder="love"
-  aria-label="Small" aria-describedby="inputGroup-sizing-sm">
-  <div class="input-group-append">
-    <button class="btn btn-outline-secondary" type="button" onClick="searchWord()">Search</button>
-  </div>
-</div>
-  <div id="plot" style="width:70%; margin:auto">
+<div id="plot">
     <div id="spinner" style="width:40">
     </div>
   </div>
   <script>
-
     var margin = 30;
-    var w = 700, h = 500 - 2 * margin;
+    var w = 450 , h = 350 - 2 * margin;
 
     var svg = d3.select('#plot').append("svg")
               .attr("width", w)
               .attr("height", h + 2*margin)
               .append("svg:g")
-              .attr("transform", "translate(" + 2*margin + ", " + margin + ")");
+              .attr("transform", "translate(" + margin + ", " + margin + ")")
+              .on("click", onMouseClick);
 
               var opts = {
                 lines: 9, // The number of lines to draw
@@ -47,10 +24,13 @@
                 className: 'spinner', // The CSS class to assign to the spinner
               };
 
+    function onMouseClick()
+    {
+      window.location.href = "./line";
+    }
     function searchWord()
     {
       word = document.getElementById("searchWord").value;
-      console.log("Search Word:", word);
       d3.select("#line-id").remove();
       d3.selectAll(".x.axis").remove();
       d3.selectAll(".y.axis").remove();
@@ -58,60 +38,59 @@
       d3.selectAll(".area").remove();
       var spinner = new Spinner(opts).spin(document.getElementById("spinner"));
       setTimeout(function(){
-          console.log('after');
           spinner.stop();
           word_line_charts(word);
         }, 2000);
     }
 
-    function word_line_charts(word){
-      d3.json("data/"+word, load_data);
+    function word_line_charts(){
+      d3.json("data-compare", load_data);
 
       function load_data(data){
-        console.log(data);
-        data = data[word];
-        line_chart(data, word);
+        var keys = Object.keys(data);
+        line_chart(data[keys[0]]);
       };
     }
 
-    function line_chart(data, word){
-      WIDTH = 1000,
-      HEIGHT = 500,
-      MARGINS = {
-        top: 20,
-        right: 20,
-        bottom: 20,
-        left: 20
-      }
-
+    function line_chart(data){
+      //data = data["know"];
       //X and Y axis
-      xRange = d3.scaleLinear().range([0, w]).domain([d3.min(data, function(d) {
+      xRange = d3.scale.linear().range([0, w]).domain([d3.min(data, function(d) {
        return Object.keys(d)[0];
      }), d3.max(data, function(d) {
        return Object.keys(d)[0];
      })]),
-     yRange = d3.scaleLinear().range([h, 0]).domain([d3.min(data, function(d) {
+     yRange = d3.scale.linear().range([h, 0]).domain([d3.min(data, function(d) {
        return d[Object.keys(d)[0]];
      }), d3.max(data, function(d) {
        return d[Object.keys(d)[0]];
      })]),
-     xAxis = d3.axisBottom()
+     xAxis = d3.svg.axis()
        .scale(xRange)
-       .tickSize(4),
-     yAxis = d3.axisLeft()
+       .tickSize(4)
+       .orient("bottom"),
+     yAxis = d3.svg.axis()
        .scale(yRange)
-       .tickSize(4);
+       .tickSize(4)
+       .orient("left");
 
        svg.append('svg:g')
       .attr('class', 'x axis')
-      .attr("transform", "translate(0, " + h  + ")")
+      .attr("transform", "translate("+margin+", " + h  + ")")
       .call(xAxis);
 
       svg.append('svg:g')
       .attr('class', 'y axis')
-      .call(yAxis);
+      .attr("transform", "translate("+margin+"," + 0 + ")")
+      .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Count");
 
-      var area = d3.area()
+      var area = d3.svg.area()
       .x(function(d) {
         return xRange( Object.keys(d)[0]);
       })
@@ -120,7 +99,7 @@
         return yRange(d[Object.keys(d)[0]]);
       });
 
-      var lineFunc = d3.line()
+      var lineFunc = d3.svg.line()
      .x(function(d) {
        return xRange( Object.keys(d)[0]);
      })
@@ -133,12 +112,14 @@
      .attr('stroke', '#69b8d6')
      .attr('stroke-width', 4)
      .attr('fill', 'none')
-     .attr("id", "line-id");
+     .attr("id", "line-id")
+     .attr("transform", "translate("+margin+"," + 0 + ")");
 
      svg.append('svg:path')
      .attr('d', area(data))
      .attr('fill', '#daeffe')
-     .attr("class", "area");
+     .attr("class", "area")
+     .attr("transform", "translate("+margin+"," + 0 + ")");
 
      // text label for the x axis
        svg.append("text")
@@ -148,19 +129,7 @@
       .attr("class", "label")
       .style("text-anchor", "middle")
       .text("Years");
-
-      // text label for the y axis
-      svg.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y",0-2*margin)
-      .attr("x",0-h/2)
-      .attr("dy", "1em")
-      .attr("class", "label")
-      .style("text-anchor", "middle")
-      .text("Count of word \""+word+"\"");
     }
 
-    word_line_charts("love")
+    word_line_charts()
   </script>
-</body>
-</html>

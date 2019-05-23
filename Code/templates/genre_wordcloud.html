@@ -1,0 +1,183 @@
+<h3 id="heading_genre" style="margin:auto; width:43%; color:steelblue">{{value}}</h3>
+<h3 id="heading_decade" style="margin:auto; width:43%; color:steelblue">{{decade}}</h3>
+<div id = "word_cloud" style="margin-left:40px">
+    <h1 id="category" style="color:#004e6b; margin:auto; text-align:center"></h1>
+    <br/>
+  </div>
+  <script>
+//Simple animated example of d3-cloud - https://github.com/jasondavies/d3-cloud
+//Based on https://github.com/jasondavies/d3-cloud/blob/master/examples/simple.html
+
+changeIt("genre");
+// Encapsulate the word cloud functionality
+function wordCloud(selector) {
+
+    var fill = d3.scale.category20();
+
+    //Construct the word cloud's SVG element
+    var svg = d3.select(selector).append("svg")
+        .attr("width", 500)
+        .attr("height", 500)
+        .append("g")
+        .attr("transform", "translate(250,250)");
+
+    //Draw the word cloud
+    function draw(words) {
+        var cloud = svg.selectAll("g text")
+                        .data(words, function(d) { return d.text; })
+
+        //Entering words
+        cloud.enter()
+            .append("text")
+            .style("font-family", "Impact")
+            .style("fill", function(d, i) { return fill(i); })
+            .attr("text-anchor", "middle")
+            .attr('font-size', 1)
+            .text(function(d) { return d.text; })
+            .on('click', handleMouseClick);
+
+        //Entering and existing words
+        cloud
+            .transition()
+                .duration(600)
+                .style("font-size", function(d) { return d.size + "px"; })
+                .attr("transform", function(d) {
+                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                })
+                .style("fill-opacity", 1);
+
+        //Exiting words
+        cloud.exit()
+            .transition()
+                .duration(200)
+                .style('fill-opacity', 1e-6)
+                .attr('font-size', 1)
+                .remove();
+
+        function handleMouseClick(d){
+          console.log("MouseClick:"+ d.text);
+        }
+    }
+
+
+    //Use the module pattern to encapsulate the visualisation code. We'll
+    // expose only the parts that need to be public.
+    return {
+
+        //Recompute the word cloud for a new set of words. This method will
+        // asycnhronously call draw when the layout has been computed.
+        //The outside world will need to call this function, so make it part
+        // of the wordCloud return value.
+        update: function(words) {
+            d3.layout.cloud().size([500, 500])
+                .words(words)
+                .padding(5)
+                .rotate(function() { return ~~(Math.random() * 2) * 90; })
+                .font("Impact")
+                .fontSize(function(d) { return d.size; })
+                .on("end", draw)
+                .start();
+        }
+    }
+
+}
+
+//Prepare one of the sample sentences by removing punctuation,
+// creating an array of words and computing a random size attribute.
+function getWords(data) {
+  var total_result = [];
+  Object.keys(data).forEach(function(dec){
+    dec_data = data[dec];
+    Object.keys(dec_data).forEach(function(elem){
+      genre_data = dec_data[elem];
+      if(genre_data === undefined)
+      {
+      }
+      else
+      {
+        var keys = Object.keys(genre_data);
+        keys.map(function(d)
+        {
+            if(genre_data[d]>2)
+            {
+                item = {text: d, size: genre_data[d]/25, genre: elem};
+                total_result.push(item);
+            }
+        })
+      }
+    })
+  })
+  return total_result;
+}
+
+function getWordsByDecade(data)
+{
+  var total_result = [];
+  Object.keys(data).forEach(function(elem){
+    genre_data = data[elem];
+      var keys = Object.keys(genre_data);
+      keys.map(function(d)
+      {
+          if(genre_data[d])
+          {
+              item = {text: d, size: genre_data[d]/25, genre: elem};
+              total_result.push(item);
+          }
+      })
+  })
+  return total_result;
+}
+
+function getWordsByGenre(data, genre)
+{
+  var keys = Object.keys(data);
+  return keys
+          .map(function(d) {
+              return {text: d, size: data[d]/5, genre:genre};
+          })
+}
+
+//This method tells the word cloud to redraw with a new set of words.
+//In reality the new words would probably come from a server request,
+// user input or some other source.
+function showNewWords(vis, category, data, decade, genre) {
+  if(!genre && !decade)
+  {
+    vis.update(getWords(data));
+  }
+  else if(!genre)
+  {
+    vis.update(getWordsByDecade(data));
+  }
+  else
+  {
+    data = data[genre]
+    vis.update(getWordsByGenre(data, genre));
+  }
+}
+
+function changeIt(category)
+{
+    genre = document.getElementById("heading_genre").innerHTML;
+    decade = document.getElementById("heading_decade").innerHTML;
+    decade = decade.trim().substring(0,3);
+    if(decade=="" && genre == "")
+      d3.json("wordcloud", load_data);
+    else if(genre=="")
+      d3.json("wordcloud/"+decade, load_data);
+    else {
+      d3.json("wordcloud/"+decade+"/"+genre, load_data);
+    }
+    function load_data(data)
+    {
+      //Create a new instance of the word cloud visualisation.
+      var myWordCloud = wordCloud(document.getElementById('word_cloud'));
+
+      //Start cycling through the demo data
+      showNewWords(myWordCloud, category, data, decade, genre);
+    }
+
+}
+
+
+</script>
