@@ -1,0 +1,42 @@
+[
+{
+	"Genre": "pop",
+	"Freq": 400
+},
+{
+	"Genre": "hip-hop",
+	"Freq": 113
+},
+{
+	"Genre": "rock",
+	"Freq": 1598
+},
+{
+	"Genre": "metal",
+	"Freq": 182
+},
+{
+	"Genre": "country",
+	"Freq": 73
+},
+{
+	"Genre": "jazz",
+	"Freq": 387
+},
+{
+	"Genre": "electronic",
+	"Freq": 90
+},
+{
+	"Genre": "folk",
+	"Freq": 13
+},
+{
+	"Genre": "r&b",
+	"Freq": 342
+},
+{
+	"Genre": "indie",
+	"Freq": 0
+}
+]
